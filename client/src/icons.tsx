@@ -1,0 +1,40 @@
+import { SVGProps } from 'react';
+const P: Record<string, string> = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3',
+  pin: 'M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+  bell: 'M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0',
+  user: 'M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5',
+  bookmark: 'M6 3h12v18l-6-4.5L6 21z',
+  back: 'M15 5l-7 7 7 7', close: 'M6 6l12 12M18 6 6 18', check: 'M5 12.5l4.5 4.5L19 7.5',
+  chevron: 'M9 5l7 7-7 7', plus: 'M12 5v14M5 12h14', minus: 'M5 12h14',
+  store: 'M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3M10 20v-5h4v5',
+  cart: 'M3 4h2.5l2.2 10.5a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.8L20 8H6.2M9.5 20a1 1 0 1 0 0-.01M16.5 20a1 1 0 1 0 0-.01',
+  box: 'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  trend: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  clipboard: 'M9 4h6v3H9zM7 5.5H5.5a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V6.5a1 1 0 0 0-1-1H17M8 12h8M8 16h5',
+  truck: 'M2 6h11v10H2zM13 9h4l3 3v4h-7M6.5 19a1.8 1.8 0 1 0 0-.01M16.5 19a1.8 1.8 0 1 0 0-.01',
+  list: 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01',
+  map: 'M9 4 3 6.5v14L9 18l6 2.5 6-2.5v-14L15 6.5zM9 4v14M15 6.5v14',
+  locate: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3',
+  globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z',
+  basket: 'M4 10h16l-1.6 9a1 1 0 0 1-1 .8H6.6a1 1 0 0 1-1-.8zM8 10l3-6M16 10l-3-6M9 14v3M15 14v3',
+  bread: 'M6 10a3 3 0 0 1 0-6h12a3 3 0 0 1 0 6v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z',
+  leaf: 'M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19c3-4 6-6 10-8',
+  hammer: 'M14 6l4 4M11 9l4-4 4 4-4 4zM12.5 12.5L4 21',
+  bolt: 'M13 2 4 14h7l-1 8 9-12h-7z',
+  chip: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  spray: 'M8 10h8v10H8zM10 10V7h4v3M12 4h3M17 5h2M17 8h2',
+  pencil: 'M4 20l4-1L19 8a2.100 2.100 0 0 0-3-3L5 16zM14 7l3 3',
+  alert: 'M12 3 2 20h20zM12 10v4.5M12 17.5v.01',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.200L22 19l-2.200.8L19 22l-.8-2.200L16 19l2.200-.8z',
+  logout: 'M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9',
+  info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8v.01',
+  shield: 'M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z',
+  walk: 'M13 4.500a1.500 1.500 0 1 0 0-.01M9 21l2-6 3 2v4M8 12l3-3 3 1 2 3M11 9l-1 6',
+  rupee: 'M7 5h10M7 9h10M7 5c5 0 6 4 0 4M7 9c4 0 7 2 7 5s-3 5-7 5l7-7',
+};
+export type IconName = keyof typeof P;
+export function Icon({ name, size = 22, ...rest }: { name: IconName; size?: number } & SVGProps<SVGSVGElement>) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...rest}><path d={P[name]} /></svg>;
+}

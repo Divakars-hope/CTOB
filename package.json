@@ -1,0 +1,13 @@
+{
+  "name": "ctob",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "reset": "node server/src/index.js --reset",
+    "test": "npm --prefix server test",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev"
+  }
+}
