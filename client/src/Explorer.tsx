@@ -41,6 +41,12 @@ export function Explorer({ product, loc, radius, setRadius, chosenShop, onOpenSt
   const root = useRef<HTMLDivElement>(null); const [h, setH] = useState(600);
   useEffect(() => { if (!root.current) return; const ro = new ResizeObserver(([e]) => setH(e.contentRect.height)); ro.observe(root.current); return () => ro.disconnect(); }, []);
 
+  const recorded = useRef<number | null>(null);
+  useEffect(() => { // one search signal per opened product search; radius or view changes do not re-count
+    if (!product || recorded.current === product.id) return; recorded.current = product.id;
+    api('/search-events', 'POST', { productId: product.id, lat: loc.lat, lng: loc.lng }).catch(() => {});
+  }, [product?.id]);
+
   const load = useCallback(() => {
     setErr(false);
     const url = product ? `/products/${product.id}/availability?lat=${loc.lat}&lng=${loc.lng}&radius=${radius}` : `/shops/nearby?lat=${loc.lat}&lng=${loc.lng}&radius=${radius}`;

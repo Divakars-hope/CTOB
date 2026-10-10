@@ -140,3 +140,66 @@ test('shop discovery returns statuses only and honours radius', async () => {
   assert.equal((await t.call('GET', `/shops/nearby?lat=${A.lat}&lng=${A.lng}&radius=1000`)).status, 401);
   t.close();
 });
+
+test('health endpoint responds without auth', async () => {
+  const t = await boot();
+  assert.equal((await t.call('GET', '/health')).status, 'ok');
+  t.close();
+});
+
+test('logout ends only that session; others stay signed in; login works again', async () => {
+  const t = await boot();
+  const dealerA = await t.staff(30), retailer = await t.staff(11), customer = await t.customer();
+  assert.equal((await t.call('GET', '/dealer/orders', null, dealerA)).success, true);
+  assert.equal((await t.call('POST', '/auth/logout', {}, dealerA)).success, true);
+  assert.equal((await t.call('GET', '/dealer/orders', null, dealerA)).status, 401, 'old dealer token no longer works');
+  assert.equal((await t.call('GET', '/retailer/dashboard', null, retailer)).success, true);
+  assert.equal((await t.call('GET', '/me', null, customer)).success, true);
+  const dealerB = await t.staff(30);
+  assert.equal((await t.call('GET', '/dealer/orders', null, dealerB)).success, true, 'sign back in works');
+  assert.ok((await t.call('GET', '/dealer/products', null, dealerB)).products.length > 0, 'logout deleted no data');
+  t.close();
+});
+
+test('three roles act concurrently without errors or lost stock', async () => {
+  const t = await boot();
+  const [c, r, d] = [await t.customer(), await t.staff(12), await t.staff(30)];
+  const jobs = [];
+  for (let i = 0; i < 20; i++) {
+    jobs.push(t.call('GET', `/products/1/availability?lat=${A.lat}&lng=${A.lng}&radius=2000`, null, c));
+    jobs.push(t.call('GET', '/retailer/dashboard', null, r));
+    jobs.push(t.call('GET', '/dealer/products', null, d));
+  }
+  // 2 units in stock; 5 concurrent single-unit sales must sell exactly 2
+  for (let i = 0; i < 5; i++) jobs.push(t.call('POST', '/retailer/sales', { items: [{ productId: 1, quantity: 1 }], paymentMethod: 'Cash', clientRef: `c${i}` }, r));
+  const out = await Promise.all(jobs);
+  assert.ok(out.every((x) => x.status < 500));
+  assert.equal(out.filter((x) => x.status === 201).length, 2);
+  assert.equal((await t.call('GET', '/retailer/inventory', null, r)).items.find((i) => i.productId === 1).qty, 0);
+  t.close();
+});
+
+test('dealer delivery credits inventory exactly once', async () => {
+  const t = await boot(); const abc = await t.staff(11), dealer = await t.staff(30);
+  const qty = async () => (await t.call('GET', '/retailer/inventory', null, abc)).items.find((i) => i.productId === 1).qty;
+  const o = await t.call('POST', '/retailer/orders', { items: [{ productId: 1, quantity: 10 }] }, abc);
+  const patch = (s) => t.call('PATCH', `/dealer/orders/${o.orderId}/status`, { status: s }, dealer);
+  await patch('Confirmed'); assert.equal(await qty(), 0, 'confirming adds no stock');
+  await patch('Dispatched'); assert.equal(await qty(), 0);
+  await Promise.all([patch('Delivered'), patch('Delivered')]);
+  assert.equal(await qty(), 10, 'delivered twice still credits once');
+  assert.equal((await patch('Delivered')).status, 409);
+  t.close();
+});
+
+test('searches count, requests and reminders do not (end to end through the API)', async () => {
+  const t = await boot(); const abc = await t.staff(11); const c = await t.customer('9000000002');
+  const n = async () => (await t.call('GET', '/retailer/demand-beacon', null, abc)).items.find((i) => i.productId === 1).searches;
+  const before = await n();
+  await t.call('POST', '/product-requests', { productId: 1 }, c);
+  await t.call('POST', '/reminders', { productId: 1, radius: 1000, lat: A.lat, lng: A.lng }, c);
+  assert.equal(await n(), before);
+  await t.call('POST', '/search-events', { productId: 1, lat: A.lat, lng: A.lng }, c);
+  assert.equal(await n(), before + 1);
+  t.close();
+});

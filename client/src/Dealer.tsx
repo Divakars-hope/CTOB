@@ -5,7 +5,7 @@ import { Icon } from './icons';
 import { AppFrame, Button, EmptyState, ErrorState, LangSwitch, LevelBadge, MetricCard, NavItem, Section, SkeletonCards, useToast } from './ui';
 import { OrderCards } from './Retailer';
 
-type Tab = 'overview' | 'orders' | 'catalogue';
+type Tab = 'overview' | 'orders' | 'catalogue' | 'account';
 const NEXT: Record<string, string> = { Pending: 'Confirmed', Confirmed: 'Dispatched', Dispatched: 'Delivered' };
 
 export default function Dealer({ user, onSignOut }: { user: any; onSignOut: () => void }) {
@@ -15,14 +15,20 @@ export default function Dealer({ user, onSignOut }: { user: any; onSignOut: () =
   useEffect(load, []);
   const count = (s: string) => (o || []).filter((x) => x.status === s).length;
   const opps = (p || []).filter((x) => x.demand !== 'low').sort((a, b) => (a.demand === 'high' ? 0 : 1) - (b.demand === 'high' ? 0 : 1) || b.retailerInterest - a.retailerInterest);
-  const nav: NavItem<Tab>[] = [{ id: 'overview', label: 'Overview', icon: 'home' }, { id: 'orders', label: t('retailerOrders').replace('Retailer ', ''), icon: 'truck', badge: count('Pending') }, { id: 'catalogue', label: 'Catalogue', icon: 'box' }];
+  const nav: NavItem<Tab>[] = [{ id: 'overview', label: 'Overview', icon: 'home' }, { id: 'orders', label: t('retailerOrders').replace('Retailer ', ''), icon: 'truck', badge: count('Pending') }, { id: 'catalogue', label: 'Catalogue', icon: 'box' }, { id: 'account', label: t('account'), icon: 'user' }];
   const advance = async (x: any) => { setBusy(x.id); try { await api(`/dealer/orders/${x.id}/status`, 'PATCH', { status: NEXT[x.status] }); toast(`Order #${x.id} ${NEXT[x.status].toLowerCase()}`); load(); } catch (e: any) { toast(e.message, 'error'); } finally { setBusy(null); } };
   const orderAction = (x: any) => NEXT[x.status] ? <Button className="w-full" loading={busy === x.id} onClick={() => advance(x)}>Mark {NEXT[x.status].toLowerCase()}</Button> : <p className="t-cap text-center">Delivered — retailer stock updated</p>;
   const Orders = !o ? <SkeletonCards n={3} h="h-40" /> : <OrderCards orders={o} action={orderAction} />;
   return (
     <AppFrame nav={nav} value={tab} onNav={setTab} wide signOut={onSignOut} title={tab === 'overview' ? user.name : nav.find((n) => n.id === tab)?.label}
-      right={<span className="lg:hidden"><LangSwitch /></span>}>
-      {err ? <ErrorState text="We couldn’t load your data." onRetry={load} /> : tab === 'overview' ? (
+      >
+      {tab === 'account' ? (
+        <div className="space-y-4">
+          <div className="card flex items-center gap-3 p-4"><span className="flex h-11 w-11 items-center justify-center rounded-ctl bg-brand-100 text-brand-700"><Icon name="truck" size={22} /></span><div><p className="t-card">{user.name}</p><p className="t-cap">Distributor account</p></div></div>
+          <div className="card flex items-center justify-between gap-3 p-4"><span className="t-card">Language</span><LangSwitch /></div>
+          <Button kind="line" className="w-full" onClick={onSignOut}><Icon name="logout" size={18} />{t('signout')}</Button>
+        </div>
+      ) : err ? <ErrorState text="We couldn’t load your data." onRetry={load} /> : tab === 'overview' ? (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><MetricCard tone="brand" label="Pending orders" value={count('Pending')} hint="need your confirmation" /><MetricCard label="Confirmed" value={count('Confirmed')} /><MetricCard label="Dispatched" value={count('Dispatched')} /><MetricCard label="Delivered" value={count('Delivered')} /></div>
           <Section title={t('demandOpp')} action={<span className="t-cap">across retailers</span>}>

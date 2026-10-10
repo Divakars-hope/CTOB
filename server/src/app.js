@@ -28,6 +28,8 @@ export function createApp(db, { clientDir } = {}) {
   const h = (fn) => (req, res, next) => { try { Promise.resolve(fn(req, res)).catch(next); } catch (e) { next(e); } };
   const ok = (res, data = {}, status = 200) => res.status(status).json({ success: true, ...data });
   const api = express.Router();
+  const health = (req, res) => { db.prepare('SELECT 1').get(); res.json({ success: true, status: 'ok', uptime: Math.round(process.uptime()) }); };
+  app.get('/health', h(health)); api.get('/health', h(health));
 
   // ---------- auth ----------
   api.post('/auth/request-otp', h((req, res) => {
@@ -49,6 +51,11 @@ export function createApp(db, { clientDir } = {}) {
       u = db.prepare('SELECT * FROM users WHERE id=?').get(r.lastInsertRowid);
     }
     ok(res, { token: session(u.id), user: publicUser(u) });
+  }));
+  api.post('/auth/logout', h((req, res) => { // ends only this device's session
+    const token = (req.headers.authorization || '').replace('Bearer ', '');
+    if (token) db.prepare('DELETE FROM sessions WHERE token=?').run(token);
+    ok(res);
   }));
   api.get('/auth/accounts', h((req, res) => {
     ok(res, { accounts: db.prepare("SELECT id, name, role FROM users WHERE role IN ('retailer','dealer') ORDER BY role, id").all() });

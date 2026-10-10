@@ -14,7 +14,11 @@ function Root() {
     if (!localStorage.getItem('ctob.token')) return setReady(true);
     api('/me').then((r) => setUser(r.user)).catch(() => setToken(null)).finally(() => setReady(true));
   }, []);
-  const signOut = () => { setToken(null); setUser(null); };
+  const signOut = async () => {
+    try { await api('/auth/logout', 'POST'); } catch { /* token may already be invalid */ }
+    ['ctob.chosen', 'ctob.recent'].forEach((k) => localStorage.removeItem(k));
+    setToken(null); setUser(null);
+  };
   if (!ready) return <div className="flex h-full items-center justify-center"><Logo size={72} /></div>;
   if (!user) return <Login onAuth={setUser} />;
   if (user.role === 'retailer') return <Retailer user={user} onSignOut={signOut} />;

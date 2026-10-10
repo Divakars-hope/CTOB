@@ -56,3 +56,16 @@ The phone must be able to reach that server address.
 ## Layout
 `server/src`: db.js (schema + seed), logic.js (notifications, demand, scoring), app.js (REST API). `server/test`: backend tests.
 `client/src`: Login, Customer, Retailer, Dealer, i18n (English / தமிழ்).
+
+## Deployment (Render backend + Vercel frontend)
+**Render (Web Service):** Root Directory `server` · Build `npm install` · Start `npm start` · Health Check Path `/health`.
+Node is pinned to 22 through `.node-version` and `engines`; also add the environment variable `NODE_VERSION=22.12.0` in Render as a safeguard, then **Clear build cache & deploy** so `better-sqlite3` is rebuilt for Node 22.
+**Vercel:** Root Directory `client` · env `VITE_API_URL=https://<your-render-service>.onrender.com` (no trailing slash). Redeploy after changing it.
+
+**Known limits (be upfront about these):**
+- SQLite lives on the server's disk. On Render's free plan the disk is not persistent, so data re-seeds to the starting state whenever the service restarts or redeploys. Fine for a presentation, not for real customers.
+- The free plan sleeps when idle; open `/health` a minute before presenting.
+- Sign-in uses a fixed verification code (123456) and open business-account selection. This is for the presentation only and is not production security.
+
+## Crash fix notes
+The native error `RemoveEnvironmentCleanupHook ... Statement::~Statement()` is raised while Node tears down the process with SQLite statements still alive. Changes: Node pinned to 22; the database is opened once; on SIGTERM/SIGINT the server stops accepting requests, closes SQLite, then exits cleanly; `/health` endpoint added.
